@@ -1,18 +1,27 @@
-use std::convert::TryInto;
+use std::{collections::HashMap, convert::TryInto};
 
 pub struct Digits {
     digits: Vec<i8>,
+    frequency: HashMap<i8, u64>,
 }
 
 impl Digits {
     pub fn new(number: i64) -> Self {
+        let digits = to_digits(number);
+        let frequency = to_frequency(&digits);
+
         Digits { 
-            digits: to_digits(number),
+            digits,
+            frequency,
         }
     }
 
     pub fn get(self) -> Vec<i8> {
         self.digits
+    }
+
+    pub fn get_frequency(self) -> HashMap<i8, u64> {
+        self.frequency
     }
 }
 
@@ -32,6 +41,21 @@ fn to_digits(number: i64) -> Vec<i8> {
 
     digits.reverse();
     digits
+}
+
+fn to_frequency(digits: &Vec<i8>) -> HashMap<i8, u64> {
+    let mut map  = HashMap::new();
+
+    for i in 0i8..=9i8 {
+        map.insert(i, 0);
+    }
+
+    for n in digits {
+        let entry = map.entry(*n).or_insert(0);
+        *entry += 1;
+    }
+
+    map
 }
 
 #[cfg(test)]
@@ -87,5 +111,22 @@ mod tests {
         let x = Digits::new(5462895035);
 
         assert_eq!(x.get(), vec![5, 4, 6, 2, 8, 9, 5, 0, 3, 5]);
+    }
+
+    #[test]
+    fn really_large_number__yields_correct_frequency_map() {
+        let x = Digits::new(5428950354);
+        let frequency = x.get_frequency();
+
+        assert_eq!(*frequency.get(&0).unwrap(), 1);
+        assert_eq!(*frequency.get(&1).unwrap(), 0);
+        assert_eq!(*frequency.get(&2).unwrap(), 1);
+        assert_eq!(*frequency.get(&3).unwrap(), 1);
+        assert_eq!(*frequency.get(&4).unwrap(), 2);
+        assert_eq!(*frequency.get(&5).unwrap(), 3);
+        assert_eq!(*frequency.get(&6).unwrap(), 0);
+        assert_eq!(*frequency.get(&7).unwrap(), 0);
+        assert_eq!(*frequency.get(&8).unwrap(), 1);
+        assert_eq!(*frequency.get(&9).unwrap(), 1);
     }
 }
